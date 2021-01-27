@@ -1,4 +1,4 @@
-(ns unicorn.core
+(ns test.core
   (:gen-class)
   (:require [org.httpkit.server :as server]
             [compojure.core :refer :all]
