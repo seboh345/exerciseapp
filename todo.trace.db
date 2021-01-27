@@ -1,0 +1,14 @@
+2021-01-27 10:14:41 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "ATTGORA" not found; SQL statement:
+select * from attgora [42102-199]
+2021-01-27 10:15:49 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "ATTGORA" not found; SQL statement:
+select * from attgora [42102-199]
+2021-01-27 10:16:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "TODO" already exists; SQL statement:
+
+create table todo (
+  id int auto_increment primary key,
+  task varchar(255),
+  taskcomplete boolean
+) [42101-199]

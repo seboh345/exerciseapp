@@ -1,0 +1,17 @@
+;lägga till deps 
+
+{   :paths ["src"]
+    :aliases {:socket {:jvm-opts ["-Dclojure.server.repl={:port,5555,:accept,clojure.core.server/repl}"]}} ;Setup vs code ansluter till repl
+    :deps {org.clojure/clojure {:mvn/version "1.10.1"}
+        seancorfield/next.jdbc {:mvn/version "1.1.613"}
+        com.h2database/h2 {:mvn/version "1.4.199"}
+        http-kit/http-kit {:mvn/version "2.5.1"}
+        compojure/compojure {:mvn/version "1.6.2"}
+        hiccup/hiccup {:mvn/version "1.0.5"} ;används för att rendera html mha clojure syntax
+        ring/ring-core {:mvn/version "1.8.1"}
+        javax.servlet/servlet-api {:mvn/version "2.5"}}
+}
+
+
+
+
