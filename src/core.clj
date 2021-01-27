@@ -5,8 +5,8 @@
             [compojure.route :as route]
             [hiccup.core :refer [html]]
             [next.jdbc :as jdbc]
-            [clojure.pprint :refer :all] ;pprint är prettyprint, ger oss snyggare utskrift i terminal nere
-            [ring.middleware.multipart-params :as p])) ;den middleware vi använder nu kräver en viss encoding på formuläret, därför lade vi till multi.. i form i html. Behövs främst vid bilder osv
+            [clojure.pprint :refer :all] 
+            [ring.middleware.multipart-params :as p])) 
 
 (def db {:dbtype "h2" :dbname "todo"}) ;Define db as typ h2 name todo
 (def ds (jdbc/get-datasource db)) ;Set ds as our db
