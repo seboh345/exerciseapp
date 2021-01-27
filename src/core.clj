@@ -77,15 +77,15 @@
     :body    ""}
   (main-handler req))
 
-(def app
-  (p/wrap-multipart-params app-routes) ;wrap-params on app-routesfunktionen
-  )
-
 (defroutes app-routes ;(3)  ;;Here we define our routes
   (GET "/" [] main-handler)
   (GET "/remove/:id" [] delete-handler) ;;
   (POST "/postoffice" [] mail-handler)
   (route/not-found "Something went wrong! Blame me!")) 
+
+(def app
+  (p/wrap-multipart-params app-routes) ;wrap-params on app-routesfunktionen
+  )
 
 (defn -main 
   "This is our app's entry point"
@@ -93,9 +93,6 @@
   (let [port (Integer/parseInt (or (System/getenv "PORT") "8080"))] 
     (server/run-server #'app {:port port})
     (println (str "Running webserver at http:/127.0.0.1:" port "/"))))
-
-
-
 
 (comment
   (-main) ;;Boot server here
