@@ -78,7 +78,7 @@
   (main-handler req))
 
 (def app
-  (p/wrap-multipart-params app-routes) ;Kör wrap-params på app-routesfunktionen
+  (p/wrap-multipart-params app-routes) ;wrap-params on app-routesfunktionen
   )
 
 (defroutes app-routes ;(3)  ;;Here we define our routes
