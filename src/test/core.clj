@@ -21,7 +21,7 @@
 (comment
   ;;
 
-  ;;KEKE
+  ;;KEKEdeasd
   (assoc @sessions :a 10)
 
   @sessions
