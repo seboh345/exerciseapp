@@ -153,9 +153,14 @@
     values(?)" tempname])
   )
 
+(defn has-role?
+  [username ROLE]
 
+
+  )
 
 ;;;;;;;;
+;; 3. Funktion som tar ett Username och en ROLE och ger (has-role?) boolean beroende på access
 ;;nedan funkar FUNKAR kollade i DBeaver
 ;;;;;;;;
 
@@ -194,7 +199,7 @@
 
   (delete-role "Bum" "Mugger")
 
-  (add-role "bum" "Mugger")                           ;;Funkar ofc bara när vi lagt till värden först : ) så testname1,23 finns att testa på so far!
+  (add-role "bum" "Mugger")                                 ;;Funkar ofc bara när vi lagt till värden först : ) så testname1,23 finns att testa på so far!
 
   )
 
