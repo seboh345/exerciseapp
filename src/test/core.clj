@@ -20,6 +20,8 @@
 
 (comment
   ;;
+
+  ;;KEKE
   (assoc @sessions :a 10)
 
   @sessions
