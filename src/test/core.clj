@@ -61,36 +61,8 @@
   @usersession
   )
 
+;;Kommentarer nere är massa övrigt
 (comment
-  " Nästa steg: Skapa användartabell (USER) med pk och användarnamn
-  pk är primarykey unikt id har inget - tänk sqlnummret - tänkpersonnummer, du kan byta namn och annat men ej nummer
-  pk kan ha auto-increment
-  användarnamn kan vara varchar [50]
-
-
-  med tabell definerar vi en databastabell
-
-  Sen vill vi ha:
-  en permissionstabell -ska heta  USER_ROLE
-  Ska ha 2 fält, user-pk referens till användaren och ett fält för role  -varchar [50] tex admin eller rektor
-    user-pk ska vara en " foreignkey " med samma typ som pk
-
-
-  alla kolumnnamn ska vara UPPERCASE
-
-  tricky med permissions - grova eller granulära permissions. Det blir alltid fel  : D
-
-
-
-
-  Nästa steg:
-  funktioner vi behöveR:
-
-  1. Funktion för att Lägga till användare -- OK
-  2. Funktion för att Lägga till roller på användare  (ska kunna ta bort) -- Kan lägga till roll, kan hitta användare?
-  3. Funktion som tar ett Username och en ROLE och ger (has-role?) boolean beroende på access
-  4. -----"
-
   (def temporaryrole
     "temporaryrole")
 
@@ -133,7 +105,14 @@
   (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" temporaryusername])) :USER/PK)
 
   ;;;;;;;;;;;;;;;;;;;
+  (comment (println (first (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ?" currentpk])))
+           (println currentpk)
+           (println userrole)
+           (println username))
 
+
+
+  ;;;;;;;
 
 
   ;(get @sessions (str/lower-case THESTRING))
@@ -141,9 +120,20 @@
   ;(keys @sessions)
 
   ;str/trim ;Skit i detta : D bar bort spaces i börjar och efter
-  (add-user "Carl")
-  (add-role "Anders" "Avloppstekniker")
+  )
+;;Smidiga grejer för att testa
+(comment
+  ;;Smidiga grejer för att testa
+  ;;Addroles osv längst ner
+  (jdbc/execute! ds ["SELECT * FROM USER_ROLE"])
+  (jdbc/execute! ds ["SELECT * FROM USER"])
 
+  (delete-role "Bengan" "Bagare")
+  (add-role "bum" "Mugger")
+
+  (has-role? "Anders" "Avloppstekniker")
+  (has-role? "Bertil" "Bagare")
+  (has-role? "Bertil" "Brandman")
   )
 
 (defn add-user
@@ -155,31 +145,31 @@
     values(?)" tempname])
   )
 
-(defn has-role?
-  [username ROLE]
-
-
-  )
-
-;;;;;;;;
-;; 3. Funktion som tar ett Username och en ROLE och ger (has-role?) boolean beroende på access
-;;nedan funkar FUNKAR kollade i DBeaver
-;;;;;;;;
-
 (defn add-role
   [username temprole]
 
   ;;Sök efter username
   (let [currentpk
         ;;Hitta PK
-        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)
-        alreadyhasrole
-        (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" currentpk temprole])]
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)]
 
     (jdbc/execute! ds ["
     insert into USER_ROLE(USER_PK, ROLE)
     values(?,?)" currentpk temprole])
-    ;;Insert ROLE med matachnde PK i USER_role (sätt pk och role här)
+    ))
+
+(defn has-role?
+  [username ROLE]
+
+  (let [currentpk
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)
+        userrole
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ?" currentpk])) :USER_ROLE/ROLE)
+        ]
+
+    (if (= ROLE userrole)
+      true
+      false)
     )
 
   )
@@ -197,13 +187,7 @@
 
 
 
-(comment
-
-  (delete-role "Bum" "Mugger")
-
-  (add-role "bum" "Mugger")                                 ;;Funkar ofc bara när vi lagt till värden först : ) så testname1,23 finns att testa på so far!
-
-  )
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn row->li
   "Takes row, adds to ordered list then adds deletebutton in the list"
@@ -359,6 +343,24 @@
     REFERENCES USER (PK))"])
 
 
+  (add-user "Anders")
+  (add-role "Anders" "Avloppstekniker")
+
+  (add-user "Bertil")
+  (add-role "Bertil" "Brandman")
+
+  (add-user "Calle")
+  (add-role "Calle" "Countrymusiker")
+
+
+
+  )
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(comment
   ;;;SYNTAX FÖR POSTRESQL <- använd sen!
   ;;Creates the permissiontable
   (jdbc/execute! ds ["
@@ -369,44 +371,5 @@
     FOREIGN KEY(USER_PK)
     REFERENCES USER(PK))"])
 
-
-
-
-
-  ;;;;OJOJ not in prod pils OJOJ
-  (jdbc/execute! ds ["
-  drop table USER
-    "])
-
-  (jdbc/execute! ds ["
-  drop table USER_ROLE
-    "])
-
-
-  "
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    Nästa steg: Skapa användartabell (USER) med pk och användarnamn\n  pk är primarykey unikt id har inget - tänk sqlnummret - tänkpersonnummer, du kan byta namn och annat men ej nummer\n  pk kan ha auto-increment\n  användarnamn kan vara varchar [50]\n\n\n  med tabell definerar vi en databastabell\n\n  Sen vill vi ha:\n  en permissionstabell -ska heta  USER_ROLE\n  Ska ha 2 fält, user-pk referens till användaren och ett fält för role  -varchar [50] tex admin eller rektor\n  user-pk ska vara en \"foreignkey\" med samma typ som pk\n\n\n  alla kolumnnamn ska vara UPPERCASE\n\n  tricky med permissions - grova eller granulära permissions. Det blir alltid fel  : D
-
-
-
-    "
-
-
-  ;;Inserts a demo-value in the table, (already in the table)
-  (jdbc/execute! ds ["
-  insert into todo(task,taskcomplete)
-  values('Your notes will be saved here!', false)"]))
+  )
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
