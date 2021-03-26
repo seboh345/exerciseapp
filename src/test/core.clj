@@ -6,7 +6,8 @@
             [hiccup.core :refer [html]]
             [next.jdbc :as jdbc]
             [clojure.pprint :refer :all]
-            [ring.middleware.multipart-params :as p]))
+            [ring.middleware.multipart-params :as p]
+            [clojure.string :as str]))
 
 (def db {:dbtype "h2" :dbname "todo"})                      ;Define db as typ h2 name todo
 (def ds (jdbc/get-datasource db))                           ;Set ds as our db
@@ -48,7 +49,7 @@
 
   users
 
-  (assoc-in )
+  (assoc-in)
 
   (def usersession (atom {}))
   (reset! usersession {})
@@ -70,7 +71,7 @@
   Sen vill vi ha:
   en permissionstabell -ska heta  USER_ROLE
   Ska ha 2 fält, user-pk referens till användaren och ett fält för role  -varchar [50] tex admin eller rektor
-    user-pk ska vara en "foreignkey" med samma typ som pk
+    user-pk ska vara en " foreignkey " med samma typ som pk
 
 
   alla kolumnnamn ska vara UPPERCASE
@@ -83,22 +84,119 @@
   Nästa steg:
   funktioner vi behöveR:
 
-  1. Funktion för att Lägga till användare
-  2. Funktion för att Lägga till roller på användare  (ska kunna ta bort)
+  1. Funktion för att Lägga till användare -- OK
+  2. Funktion för att Lägga till roller på användare  (ska kunna ta bort) -- Kan lägga till roll, kan hitta användare?
   3. Funktion som tar ett Username och en ROLE och ger (has-role?) boolean beroende på access
   4. -----"
-  )
 
+  (def temporaryrole
+    "temporaryrole")
+
+  (jdbc/execute! ds ["
+  insert into USER_ROLE(ROLE)
+    values(?)" temporaryrole])
+
+  (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE ROLE = ?" "temporaryrole"])
+
+  (def temporaryusername
+    "temporaryusername")
+
+  (jdbc/execute! ds ["
+  insert into USER(USERNAME)
+    values(?)" "testname3"])
+
+  (jdbc/execute! ds ["
+  insert into USER(USERNAME)
+    values(?)" temporaryusername])
+
+
+  (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" temporaryusername])
+
+  (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE ROLE = ?" "Mugger"])
+  (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ?" 17])
+
+  (def wordtodelete
+    "String here")
+
+  (jdbc/execute-one! ds ["DELETE FROM USER WHERE USERNAME = ?" wordtodelete]) ;; Här deleetar vi på termen i wordtodelete
+
+
+  ;;;;;Exempelsekvens
+
+
+  (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" "Bengan"])
+
+  (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" temporaryusername]))
+
+  (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" temporaryusername])) :USER/PK)
+
+  ;;;;;;;;;;;;;;;;;;;
+
+
+
+  ;(get @sessions (str/lower-case THESTRING))
+
+  ;(keys @sessions)
+
+  ;str/trim ;Skit i detta : D bar bort spaces i börjar och efter
+  (add-user "Carl")
+  (add-role "Anders" "Avloppstekniker")
+
+  )
 
 (defn add-user
   "takes req and adds user in the USER table"
-  [req]
+  [tempname]
+
   (jdbc/execute! ds ["
   insert into USER(USERNAME)
-    values(?)" todostring])                                 ;;HÄR SKA VI ERSÄTTA TODOSTRING MED VÄRDET VI VILL ERSÄTTA
+    values(?)" tempname])
   )
 
 
+
+;;;;;;;;
+;;nedan funkar FUNKAR kollade i DBeaver
+;;;;;;;;
+
+(defn add-role
+  [username temprole]
+
+  ;;Sök efter username
+  (let [currentpk
+        ;;Hitta PK
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)
+        alreadyhasrole
+        (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" currentpk temprole])]
+
+    (jdbc/execute! ds ["
+    insert into USER_ROLE(USER_PK, ROLE)
+    values(?,?)" currentpk temprole])
+    ;;Insert ROLE med matachnde PK i USER_role (sätt pk och role här)
+    )
+
+  )
+
+(defn delete-role
+  [username temprole]
+  ;;Sök efter username
+  (let [currentpk
+        ;;Hitta PK
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)
+        alreadyhasrole
+        (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" currentpk temprole])]
+
+    (jdbc/execute-one! ds ["DELETE FROM USER_ROLE WHERE USER_PK = ?" currentpk])))
+
+
+
+(comment
+
+  (delete-role "Bum" "Mugger")
+
+  (add-role "bum" "Mugger")                           ;;Funkar ofc bara när vi lagt till värden först : ) så testname1,23 finns att testa på so far!
+
+  )
 
 (defn row->li
   "Takes row, adds to ordered list then adds deletebutton in the list"
@@ -168,10 +266,12 @@
        :value "Save"}]]
     " Atom sessions values:"
     @sessions [:br]
-    "You are logged in as: "
-    (:username @sessions) [:br]
-    "Current time and date is: "
-    (:timeanddate @sessions) [:br]))
+    ;(println (get-in req [:params "input2"]))
+    ;(str/lower-case (get-in req [:params "input2"]))
+
+    [:br])
+
+  )
 
 
 (defn imagetohtml [req]
@@ -192,7 +292,7 @@
 
 (defn session-handler [req]
   ;(println (get-in req [:params "input2"]))
-  (swap! sessions (fn [ss] (assoc ss (get-in req [:params "input2"])
+  (swap! sessions (fn [ss] (assoc ss (str/lower-case (get-in req [:params "input2"]))
                                      {:timeanddate (java.util.Date.)})))
   (main-handler req))
 
@@ -262,27 +362,41 @@
     FOREIGN KEY(USER_PK)
     REFERENCES USER(PK))"])
 
-"
 
 
 
 
+  ;;;;OJOJ not in prod pils OJOJ
+  (jdbc/execute! ds ["
+  drop table USER
+    "])
 
-
-
-
-
-
-
-
-
-
-
-  Nästa steg: Skapa användartabell (USER) med pk och användarnamn\n  pk är primarykey unikt id har inget - tänk sqlnummret - tänkpersonnummer, du kan byta namn och annat men ej nummer\n  pk kan ha auto-increment\n  användarnamn kan vara varchar [50]\n\n\n  med tabell definerar vi en databastabell\n\n  Sen vill vi ha:\n  en permissionstabell -ska heta  USER_ROLE\n  Ska ha 2 fält, user-pk referens till användaren och ett fält för role  -varchar [50] tex admin eller rektor\n  user-pk ska vara en \"foreignkey\" med samma typ som pk\n\n\n  alla kolumnnamn ska vara UPPERCASE\n\n  tricky med permissions - grova eller granulära permissions. Det blir alltid fel  : D
-
+  (jdbc/execute! ds ["
+  drop table USER_ROLE
+    "])
 
 
   "
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    Nästa steg: Skapa användartabell (USER) med pk och användarnamn\n  pk är primarykey unikt id har inget - tänk sqlnummret - tänkpersonnummer, du kan byta namn och annat men ej nummer\n  pk kan ha auto-increment\n  användarnamn kan vara varchar [50]\n\n\n  med tabell definerar vi en databastabell\n\n  Sen vill vi ha:\n  en permissionstabell -ska heta  USER_ROLE\n  Ska ha 2 fält, user-pk referens till användaren och ett fält för role  -varchar [50] tex admin eller rektor\n  user-pk ska vara en \"foreignkey\" med samma typ som pk\n\n\n  alla kolumnnamn ska vara UPPERCASE\n\n  tricky med permissions - grova eller granulära permissions. Det blir alltid fel  : D
+
+
+
+    "
 
 
   ;;Inserts a demo-value in the table, (already in the table)
