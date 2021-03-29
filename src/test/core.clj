@@ -129,11 +129,12 @@
   (jdbc/execute! ds ["SELECT * FROM USER"])
 
   (delete-role "Bengan" "Bagare")
-  (add-role "bum" "Mugger")
+  (add-role "Bertil" "Bagare")
 
   (has-role? "Anders" "Avloppstekniker")
   (has-role? "Bertil" "Bagare")
   (has-role? "Bertil" "Brandman")
+  (has-role? "Bertil" "Bankrånare")
   )
 
 (defn add-user
@@ -163,15 +164,25 @@
 
   (let [currentpk
         (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)
-        userrole
-        (get (first (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ?" currentpk])) :USER_ROLE/ROLE)
+        userroles
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" currentpk ROLE])) :USER_ROLE/ROLE)
         ]
-
-    (if (= ROLE userrole)
+    (if (= userroles ROLE)
       true
-      false)
-    )
+      false))
+  )
 
+(comment
+
+  (if (= ROLE userrole)
+    true
+    false)
+
+
+
+  (jdbc/execute-one! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" 2 "Bagare"])
+
+  (#{1 2 3} 123)
   )
 
 (defn delete-role
@@ -239,6 +250,32 @@
       {:type  "submit"
        :value "Save"}]]))
 
+
+
+(comment
+  " --Steg 1:LISTA ALLA ANVÄNDA I sessions
+    Steg 2: Skapa överblick av tillgängliga roller / raktiva roller per användarID(pk)
+    Steg 3: Länka hyperlänk Användarnamn till användarsida")
+
+
+;;Lista med hyperlänkar klar
+;;Länkarna behöver fixas sen
+;;bygg user-id-sidan nu
+;;Behöver lägga till sessions i databasen med...
+(defn list-users
+  [users]
+  [:ul
+   (for [u users
+         ;;:let [_ (println u)]
+         ]
+     [:li [:a {:href (str "/usermanagement/" (:USER/PK u))} (:USER/USERNAME u)]
+      ])])
+
+(comment
+  (list-users (jdbc/execute! ds ["SELECT * FROM USER"]))
+  ;;I länken använd PK, "vi vet alltid", men visa användarnamnet
+  )
+
 (defn sessionhtml [req]
 
   (html
@@ -255,15 +292,19 @@
      [:input
       {:type  "submit"
        :value "Save"}]]
-    " Atom sessions values:"
+    "Active sessions:" [:br]
     @sessions [:br]
-    ;(println (get-in req [:params "input2"]))
-    ;(str/lower-case (get-in req [:params "input2"]))
+    "All users:" [:br]
+    (list-users (jdbc/execute! ds ["SELECT * FROM USER"]))
+
 
     [:br])
 
-  )
+  ; (list-users @sessions)  Denna kanske borde lista "list-active-users" istället?
+  ;(println (get-in req [:params "input2"]))
+  ;(str/lower-case (get-in req [:params "input2"]))
 
+  )
 
 (defn imagetohtml [req]
   (html
@@ -277,9 +318,9 @@
      [:h1 "This is a big header!"]
      (mainlisthtml req)
      (sessionhtml req)
-     (imagetohtml req)]))
+     ]))
 
-
+#_(imagetohtml req)
 
 (defn session-handler [req]
   ;(println (get-in req [:params "input2"]))
@@ -301,11 +342,20 @@
    :body    ""}
   (main-handler req))
 
+(defn user-handler
+  [userid]
+  (html
+    [:div
+     [:h1 "User-site WUWUW!"]
+     ])
+  )
+
 (defroutes app-routes                                       ;(3)  ;;Here we define our routes
            (GET "/" [] main-handler)
            (GET "/remove/:id" [] delete-handler)            ;;
            (POST "/postoffice" [] mail-handler)
            (POST "/sessionoffice" [] session-handler)
+           (POST "/usermanagement/:id" [] user-handler)
            (route/not-found "Something went wrong! Blame me!"))
 
 (def app
@@ -351,8 +401,6 @@
 
   (add-user "Calle")
   (add-role "Calle" "Countrymusiker")
-
-
 
   )
 
