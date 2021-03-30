@@ -30,7 +30,6 @@
 (defn user-handler
   [req]
   ;(pprint (get-in req [:params :id]))
-
   (html
     [:div
      [:h1 "Current user " (user/username (get-in req [:params :id]))]
@@ -40,10 +39,7 @@
     )
   )
 
-
 ;;Bygg #() med samtliga roller, visa vilka som finns på respektive user samt vilka som inte finns
-
-
 
 (defn sessionhtml [sessions req]
 

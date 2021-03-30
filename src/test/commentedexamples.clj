@@ -31,11 +31,33 @@
 
   )
 
+
+
+;;Smidiga grejer för att testa
+;;Addroles osv längst ner
+(comment
+  (jdbc/execute! user/ds ["SELECT * FROM USER_ROLE"])
+  (jdbc/execute! user/ds ["SELECT * FROM USER"])
+
+  (delete-role "Bengan" "Bagare")
+  (add-role "Bertil" "Bagare")
+
+  (has-role? "Anders" "Avloppstekniker")
+  (has-role? "Bertil" "Bagare")
+  (has-role? "Bertil" "Brandman")
+  (has-role? "Bertil" "Bankrånare")
+  )
+
+
+
+
+
+
+
 (comment
   (list-users (jdbc/execute! ds ["SELECT * FROM USER"]))
   ;;I länken använd PK, "vi vet alltid", men visa användarnamnet
   )
-
 
 
 (def temporaryrole
