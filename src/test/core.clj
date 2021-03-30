@@ -7,7 +7,8 @@
             [next.jdbc :as jdbc]
             [clojure.pprint :refer :all]
             [ring.middleware.multipart-params :as p]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.edn :as edn]))
 
 (def db {:dbtype "h2" :dbname "todo"})                      ;Define db as typ h2 name todo
 (def ds (jdbc/get-datasource db))                           ;Set ds as our db
@@ -148,16 +149,19 @@
 
 (defn add-role
   [username temprole]
-
   ;;Sök efter username
   (let [currentpk
         ;;Hitta PK
         (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)]
-
     (jdbc/execute! ds ["
     insert into USER_ROLE(USER_PK, ROLE)
     values(?,?)" currentpk temprole])
     ))
+
+(defn username
+  [pk]
+  (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE PK = ?" pk])) :USER/USERNAME)
+  )
 
 (defn has-role?
   [username ROLE]
@@ -252,16 +256,6 @@
 
 
 
-(comment
-  " --Steg 1:LISTA ALLA ANVÄNDA I sessions
-    Steg 2: Skapa överblick av tillgängliga roller / raktiva roller per användarID(pk)
-    Steg 3: Länka hyperlänk Användarnamn till användarsida")
-
-
-;;Lista med hyperlänkar klar
-;;Länkarna behöver fixas sen
-;;bygg user-id-sidan nu
-;;Behöver lägga till sessions i databasen med...
 (defn list-users
   [users]
   [:ul
@@ -274,6 +268,58 @@
 (comment
   (list-users (jdbc/execute! ds ["SELECT * FROM USER"]))
   ;;I länken använd PK, "vi vet alltid", men visa användarnamnet
+  )
+
+
+(defn list-user-roles
+  [roles]
+  [:ul
+   (map (fn [r]
+          [:li r])
+        roles)])
+;;=> [:ul [:li "Brandman"] [:li "Bagare"]]
+
+(defn roles
+  [username-or-id]
+  (let [currentpk (if (string? username-or-id)
+                    (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username-or-id])) :USER/PK)
+                    username-or-id)
+        userroles
+        (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ?" currentpk])
+        ]
+    (map :USER_ROLE/ROLE userroles))
+  )
+;;=> ("Bagare" "Brandman")
+
+
+(comment
+  (:USER_ROLE/ROLE (first [#:USER_ROLE{:USER_PK 2, :ROLE "Brandman"} #:USER_ROLE{:USER_PK 2, :ROLE "Bagare"}]))
+
+
+  (map :USER_ROLE/ROLE #:USER_ROLE{:USER_PK 2, :ROLE "Brandman"})
+  (map identity #:USER_ROLE{:USER_PK 2, :ROLE "Brandman"})
+
+  ;;Enskilda fallet vs lista av flera... kolla för ref
+  (:USER_ROLE/ROLE #:USER_ROLE{:USER_PK 2, :ROLE "Brandman"})
+  (map :USER_ROLE/ROLE [#:USER_ROLE{:USER_PK 2, :ROLE "Brandman"} #:USER_ROLE{:USER_PK 2, :ROLE "Bagare"}])
+
+  (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ?" 2])
+  (list-user-roles (roles username))                        ;;genererar hiccup skit i db :D
+  (roles "Anders")                                          ;;snackar med db
+
+
+  ;;Alltid när vi vill kagga med VECTORer MF(f)R.
+  (map (fn [v] (+ v v)) [1 2 3])
+  (filter (fn [v] (= v 2)) [1 2 3])
+  (first)
+  (reduce (fn [acc v] (+ acc v)) 0 [1 2 3])
+
+
+  (reduce (fn [acc v]
+            (println acc " - " v)
+            acc) [1 2 3])                                   ;; first
+  (reduce (fn [acc v] v) [1 2 3])                           ;; last
+
   )
 
 (defn sessionhtml [req]
@@ -299,11 +345,6 @@
 
 
     [:br])
-
-  ; (list-users @sessions)  Denna kanske borde lista "list-active-users" istället?
-  ;(println (get-in req [:params "input2"]))
-  ;(str/lower-case (get-in req [:params "input2"]))
-
   )
 
 (defn imagetohtml [req]
@@ -342,20 +383,35 @@
    :body    ""}
   (main-handler req))
 
+(defn userid-to-pk
+  "Takes username and returns PK"
+  [name]
+  (get (jdbc/execute-one! ds ["SELECT * FROM USER WHERE USERNAME = ?" name]) :USER/PK)
+  )
+;;=> 1 (en int dvs)
+
 (defn user-handler
-  [userid]
+  [req]
+  ;(pprint (get-in req [:params :id]))
+
   (html
     [:div
-     [:h1 "User-site WUWUW!"]
-     ])
+     [:h1 "Current user " (username (get-in req [:params :id]))]
+     "Aktiva roller på nuvarande användare: "
+     (list-user-roles (roles (edn/read-string (get-in req [:params :id]))))
+     ]
+    )
   )
+
+;;Bygg #() med samtliga roller, visa vilka som finns på respektive user samt vilka som inte finns
+
 
 (defroutes app-routes                                       ;(3)  ;;Here we define our routes
            (GET "/" [] main-handler)
-           (GET "/remove/:id" [] delete-handler)            ;;
-           (POST "/postoffice" [] mail-handler)
+           (GET "/remove/:id" [] delete-handler)            ;;GET när vi hämtar adress? isch? google
+           (POST "/postoffice" [] mail-handler)             ;;POST när vi skickar formulär etc
            (POST "/sessionoffice" [] session-handler)
-           (POST "/usermanagement/:id" [] user-handler)
+           (GET "/usermanagement/:id" [] user-handler)
            (route/not-found "Something went wrong! Blame me!"))
 
 (def app
@@ -420,4 +476,4 @@
     REFERENCES USER(PK))"])
 
   )
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
