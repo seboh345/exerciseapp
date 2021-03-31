@@ -22,13 +22,10 @@
   [:li (:TODO/TASK row) " " [:a {:href tempstring} "Delete"]])
 ;;=> [:li "Int från ID" "string from TASK"
 
-
-
 (defn gettable1
   "Fetches table from database"
   []
   (jdbc/execute! user/ds ["select * from todo"]))
-
 
 (defn printtohtmlLI
   "Fetches table, runs row-li on each element, then vectorizes the resulting LazySeq.
@@ -47,8 +44,6 @@
   (jdbc/execute! user/ds ["
   insert into todo(task,taskcomplete)
     values(?,?)" todostring false]))
-
-
 
 (defn mainlisthtml [req]
   (html

@@ -18,7 +18,6 @@
 ;;@sessions                                                   ;;Ger oss :val{}
 ;;=> {"jona" {:session-start #inst "2021-03-30 12:00:00"}}
 
-
 (defn main-handler [req]
   (html
     [:div
@@ -67,7 +66,9 @@
     (println (str "Running webserver at http:/127.0.0.1:" port "/"))))
 
 (comment
-  (-main)                                                   ;;Boot server here
+  (-main);;Boot server here
+  (user/add-user "David")
+  (user/add-role "David" "Andlig vägledare")
   )
 
 

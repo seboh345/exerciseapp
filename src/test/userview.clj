@@ -8,6 +8,7 @@
             [ring.middleware.multipart-params :as p]
             [clojure.string :as str]
             [clojure.edn :as edn]
+            [clojure.set :as cljset]
             [test.user :as user]))
 
 (defn list-users
@@ -16,8 +17,17 @@
    (for [u users
          ;;:let [_ (println u)]
          ]
-     [:li [:a {:href (str "/usermanagement/" (:USER/PK u))} (:USER/USERNAME u)]
-      ])])
+     [:li [:a {:href (str "/usermanagement/" (:USER/PK u))} (:USER/USERNAME u)]])])
+
+(defn link-user-roles
+  [roles]
+  [:ul
+   (for [r roles
+         ;;:let [_ (println u)]
+         ]
+     [:li [:a {:href (str "/usermanagement/" (:USER_ROLE/USER_PK/PK r))} (:USER_ROLE/ROLE r)]])]
+  )
+
 
 (defn list-user-roles
   [roles]
@@ -27,19 +37,36 @@
         roles)])
 ;;=> [:ul [:li "Brandman"] [:li "Bagare"]]
 
+(defn active-roles
+  [user]
+  (list-user-roles (user/roles (edn/read-string user))))
+
+(defn available-roles
+  [user]
+  (list-user-roles (cljset/difference (user/all-roles) (user/roles (edn/read-string user)))))
+
 (defn user-handler
   [req]
   ;(pprint (get-in req [:params :id]))
+
+  (def tempuser
+    (get-in req [:params :id]))
   (html
     [:div
-     [:h1 "Current user " (user/username (get-in req [:params :id]))]
+     [:h1 "Current user " (user/username tempuser)]
      "Aktiva roller på nuvarande användare: "
-     (list-user-roles (user/roles (edn/read-string (get-in req [:params :id]))))
-     ]
-    )
-  )
+     (active-roles tempuser)
+     [:br]
+     "Samtliga tillgängliga roller (som nuvarande använder totalt och helt fullständigt saknar kompetens för): "
+     [:br]
+     (available-roles tempuser)
+     ;;"Samtliga roller på Tillfälligtnamn AB: "
+     ;;(list-user-roles (user/all-roles)) [:br]
+     ]))
 
-;;Bygg #() med samtliga roller, visa vilka som finns på respektive user samt vilka som inte finns
+;Länkar så vi kan swappa mellan aktiva och tillgängliga roller
+
+
 
 (defn sessionhtml [sessions req]
 
@@ -60,9 +87,7 @@
     "Active sessions:" [:br]
     sessions [:br]
     "All users:" [:br]
-    (list-users (jdbc/execute! user/ds ["SELECT * FROM USER"]))
-    [:br])
-  )
+    (list-users (jdbc/execute! user/ds ["SELECT * FROM USER"])) [:br]))
 
 
 
