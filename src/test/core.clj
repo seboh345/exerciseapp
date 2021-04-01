@@ -33,18 +33,36 @@
   (main-handler req))
 
 (defn mail-handler [req]
-  (testtodo/savetodoindb (get-in req [:params "input1"]))            ;;Here we get the input1 params in the returned map from and save a new entry
+  (testtodo/savetodoindb (get-in req [:params "input1"]))   ;;Here we get the input1 params in the returned map from and save a new entry
   {:status  200
    :headers {"Content-Type" "text/json"}                    ;(1)
    :body    ""}
   (main-handler req))
 
 (defn delete-handler [req]
-  (testtodo/removetask (get-in req [:params :id]))                   ;
+  (testtodo/removetask (get-in req [:params :id]))          ;
   {:status  200
    :headers {"Content-Type" "text/json"}                    ;(1)
    :body    ""}
   (main-handler req))
+
+(defn remove-role-handler [req]
+  ;;:id/:role
+  (def tempusername
+    (user/username (get-in req [:params :id])))
+  (def temprole
+    (get-in req [:params :role]))
+
+  ;(println (get-in req [:params :id]))
+  ;(println (get-in req [:params :role]))
+  (if (user/has-role? tempusername temprole)
+    (user/delete-role tempusername temprole)
+    (user/add-role tempusername temprole))
+
+  {:status  200
+   :headers {"Content-Type" "text/json"}                    ;(1)
+   :body    ""}
+  (userview/user-handler req))
 
 (defroutes app-routes                                       ;(3)  ;;Here we define our routes
            (GET "/" [] main-handler)
@@ -52,6 +70,7 @@
            (POST "/postoffice" [] mail-handler)             ;;POST när vi skickar formulär etc
            (POST "/sessionoffice" [] session-handler)
            (GET "/usermanagement/:id" [] userview/user-handler)
+           (GET "/usermanagement/remove-role/:id/:role" [] remove-role-handler)
            (route/not-found "Something went wrong! Blame me!"))
 
 (def app
@@ -66,7 +85,7 @@
     (println (str "Running webserver at http:/127.0.0.1:" port "/"))))
 
 (comment
-  (-main);;Boot server here
+  (-main)                                                   ;;Boot server here
   (user/add-user "David")
   (user/add-role "David" "Andlig vägledare")
   )

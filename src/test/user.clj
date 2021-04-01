@@ -25,20 +25,6 @@
   insert into USER(USERNAME)
     values(?)" tempname]))
 
-(defn add-role
-  [username temprole]
-  ;;Sök efter username
-  (let [currentpk
-        ;;Hitta PK
-        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)]
-    (jdbc/execute! ds ["
-    insert into USER_ROLE(USER_PK, ROLE)
-    values(?,?)" currentpk temprole])))
-
-(defn username
-  [pk]
-  (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE PK = ?" pk])) :USER/USERNAME))
-
 (defn has-role?
   [username ROLE]
   (let [currentpk
@@ -49,7 +35,22 @@
     (if (= userroles ROLE)
       true
       false)))
-;;=>delete old role, add new role
+
+(defn add-role
+  [username temprole]
+  ;;Sök efter username
+  (let [currentpk
+        ;;Hitta PK
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)]
+    (jdbc/execute! ds ["
+    insert into USER_ROLE(USER_PK, ROLE)
+    values(?,?)" currentpk temprole])
+    ))
+
+(defn username
+  [pk]
+  (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE PK = ?" pk])) :USER/USERNAME))
+
 (defn roles
   [username-or-id]
   (let [currentpk (if (string? username-or-id)
@@ -66,10 +67,9 @@
   ;;Sök efter username
   (let [currentpk
         ;;Hitta PK
-        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)
-        alreadyhasrole
-        (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" currentpk temprole])]
-    (jdbc/execute-one! ds ["DELETE FROM USER_ROLE WHERE USER_PK = ?" currentpk])))
+        (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)]
+    (jdbc/execute-one! ds ["DELETE FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" currentpk temprole])))
+
 
 (defn all-roles
   []

@@ -19,31 +19,23 @@
          ]
      [:li [:a {:href (str "/usermanagement/" (:USER/PK u))} (:USER/USERNAME u)]])])
 
-(defn link-user-roles
-  [roles]
-  [:ul
-   (for [r roles
-         ;;:let [_ (println u)]
-         ]
-     [:li [:a {:href (str "/usermanagement/" (:USER_ROLE/USER_PK/PK r))} (:USER_ROLE/ROLE r)]])]
-  )
-
-
 (defn list-user-roles
-  [roles]
+  [roles userpk]
   [:ul
    (map (fn [r]
-          [:li r])
+          [:li [:a {:href (str "/usermanagement/remove-role/" userpk "/" r)} r]])
         roles)])
 ;;=> [:ul [:li "Brandman"] [:li "Bagare"]]
-
+;;Ta bort user, och länka tillbaka där den var
 (defn active-roles
-  [user]
-  (list-user-roles (user/roles (edn/read-string user))))
+  [userpk]
+  (list-user-roles (user/roles (edn/read-string userpk))
+                   userpk))
 
 (defn available-roles
-  [user]
-  (list-user-roles (cljset/difference (user/all-roles) (user/roles (edn/read-string user)))))
+  [userpk]
+  (list-user-roles (cljset/difference (user/all-roles) (user/roles (edn/read-string userpk)))
+                   userpk))
 
 (defn user-handler
   [req]
@@ -63,10 +55,6 @@
      ;;"Samtliga roller på Tillfälligtnamn AB: "
      ;;(list-user-roles (user/all-roles)) [:br]
      ]))
-
-;Länkar så vi kan swappa mellan aktiva och tillgängliga roller
-
-
 
 (defn sessionhtml [sessions req]
 
