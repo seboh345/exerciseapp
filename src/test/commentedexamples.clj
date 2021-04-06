@@ -49,12 +49,6 @@
   )
 
 
-(commen
-  )
-
-
-
-
 
 (comment
   (list-users (jdbc/execute! ds ["SELECT * FROM USER"]))

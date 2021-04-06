@@ -11,6 +11,9 @@
             [clojure.set :as cljset]
             [test.user :as user]))
 
+
+
+
 (defn list-users
   [users]
   [:ul
@@ -27,6 +30,7 @@
         roles)])
 ;;=> [:ul [:li "Brandman"] [:li "Bagare"]]
 ;;Ta bort user, och länka tillbaka där den var
+
 (defn active-roles
   [userpk]
   (list-user-roles (user/roles (edn/read-string userpk))
@@ -40,7 +44,6 @@
 (defn user-handler
   [req]
   ;(pprint (get-in req [:params :id]))
-
   (def tempuser
     (get-in req [:params :id]))
   (html
@@ -57,7 +60,6 @@
      ]))
 
 (defn sessionhtml [sessions req]
-
   (html
     [:h2 "Save a session below!"]
     [:form
@@ -74,8 +76,32 @@
        :value "Save"}]]
     "Active sessions:" [:br]
     sessions [:br]
-    "All users:" [:br]
-    (list-users (jdbc/execute! user/ds ["SELECT * FROM USER"])) [:br]))
+    ))
 
+(defn user-html
+  [req]
+  (html
+    [:h2 "Add a user below!"]
+    [:form
+     {:method "post"
+      :action "/adduseroffice"
+      :enctype "multipart/form-data"}
+     [:label {:for "#input3"} "Type the new user: "]
+     [:input
+      {:type "text"
+       :id "input3"
+       :name "input3"}]
+     [:input
+      {:type "submit"
+       :value "Save"}]]
+    "All users:" [:br]
+     (list-users (jdbc/execute! user/ds ["SELECT * FROM USER ORDER BY USERNAME"])) [:br]
+    ))
+
+(comment
+  (jdbc/execute! user/ds ["SELECT * FROM USER"])
+  (jdbc/execute! user/ds ["SELECT * FROM USER_ROLE"])
+  (jdbc/execute! user/ds ["SELECT * FROM ROLE"])
+  )
 
 

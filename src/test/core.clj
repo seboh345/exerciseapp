@@ -24,6 +24,7 @@
      [:h1 "This is a big header!"]
      (testtodo/mainlisthtml req)
      (userview/sessionhtml @sessions req)
+     (userview/user-html req)
      ]))
 
 (defn session-handler [req]
@@ -64,6 +65,16 @@
    :body    ""}
   (userview/user-handler req))
 
+(defn add-user-handler [req]
+  (def tempusername
+    (get-in req [:params "input3"]))
+  (user/add-user tempusername)
+  {:status  200
+   :headers {"Content-Type" "text/json"}                    ;(1)
+   :body "" }
+  (main-handler req)
+  )
+
 (defroutes app-routes                                       ;(3)  ;;Here we define our routes
            (GET "/" [] main-handler)
            (GET "/remove/:id" [] delete-handler)            ;;GET när vi hämtar adress? isch? google
@@ -71,6 +82,7 @@
            (POST "/sessionoffice" [] session-handler)
            (GET "/usermanagement/:id" [] userview/user-handler)
            (GET "/usermanagement/remove-role/:id/:role" [] remove-role-handler)
+           (POST "/adduseroffice" [] add-user-handler)
            (route/not-found "Something went wrong! Blame me!"))
 
 (def app
@@ -87,9 +99,15 @@
 (comment
   (-main)                                                   ;;Boot server here
   (user/add-user "David")
-  (user/add-role "David" "Andlig vägledare")
+  (user/add-role "David" "Taxikung")
   )
 
 
 
 
+
+
+
+;;Kända buggar:
+;;Om man tar bort sista rollen av något -> försvinner från tillgängliga roller, dvs behöver en extern lista på alla roller man ska kunna ha
+;;Vid uppdatering av sidan skickas commando igen
