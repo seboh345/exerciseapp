@@ -79,7 +79,6 @@
         (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username])) :USER/PK)]
     (jdbc/execute-one! ds ["DELETE FROM USER_ROLE WHERE USER_PK = ? AND ROLE = ?" currentpk temprole])))
 
-
 (defn all-roles
   []
   (->> (jdbc/execute! ds ["SELECT * FROM ROLE"])
@@ -87,6 +86,32 @@
        (apply sorted-set)
        ))
 
+
+(defn swap-user-state
+  [pk active?]
+  (if (= active? true)
+    (jdbc/execute! ds ["
+    UPDATE USER SET ACTIVE = ?
+    WHERE PK = ?" nil, pk])
+    (jdbc/execute! ds ["
+    UPDATE USER SET ACTIVE = ?
+    WHERE PK = ?" true, pk])
+    )
+  )
+
+(defn user-dis-act
+  "Takes username, swaps activation mode. Dis->active or Act->disactive"
+  [username-or-id]
+
+  (let [currentpk (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username-or-id])) :USER/PK)
+        isactive? (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username-or-id])) :USER/ACTIVE)]
+    (swap-user-state currentpk isactive?))
+  )
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment                                                    ;;Creates the todo-table, (already created)
   (jdbc/execute! ds ["
@@ -99,7 +124,9 @@
   (jdbc/execute! ds ["
   create table USER (
   PK int auto_increment primary key,
-  USERNAME varchar(50))"])
+  USERNAME varchar(50),
+  EMAIL varchar(50),
+  ACTIVE boolean)"])
 
   ;;Creates the ROLE-data table
   (jdbc/execute! ds ["
@@ -148,6 +175,8 @@
   (jdbc/execute! ds ["SELECT * FROM USER"])
 
   (jdbc/execute! ds ["SELECT * FROM USER_ROLE"])
+
+  (user-dis-act "anders")
 
   (all-roles)
 
