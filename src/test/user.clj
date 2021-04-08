@@ -60,6 +60,18 @@
   [pk]
   (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE PK = ?" pk])) :USER/USERNAME))
 
+(defn user
+  [pk]
+  (first (jdbc/execute! ds ["SELECT * FROM USER WHERE PK = ?" pk])))
+
+(defn add-email
+  [pk email]
+  (jdbc/execute! ds ["
+    UPDATE USER SET EMAIL = ?
+    WHERE PK = ?" email, pk]))
+
+;(add-email 1 "bertil@stonks.com")
+
 (defn roles
   [username-or-id]
   (let [currentpk (if (string? username-or-id)
@@ -86,7 +98,6 @@
        (apply sorted-set)
        ))
 
-
 (defn swap-user-state
   [pk active?]
   (if (= active? true)
@@ -96,21 +107,25 @@
     (jdbc/execute! ds ["
     UPDATE USER SET ACTIVE = ?
     WHERE PK = ?" true, pk])
-    )
-  )
+    ))
 
 (defn user-dis-act
   "Takes username, swaps activation mode. Dis->active or Act->disactive"
   [username-or-id]
 
-  (let [currentpk (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username-or-id])) :USER/PK)
-        isactive? (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username-or-id])) :USER/ACTIVE)]
-    (swap-user-state currentpk isactive?))
+  (if (int? username-or-id)
+    (let [isactive? (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE PK = ?" username-or-id])) :USER/ACTIVE)]
+      (swap-user-state username-or-id isactive?))
+
+    (let [currentpk (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username-or-id])) :USER/PK)
+          isactive? (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" username-or-id])) :USER/ACTIVE)]
+      (println currentpk)
+      (swap-user-state currentpk isactive?))))
+
+(comment
+  (user-dis-act "anders")
+  (user-dis-act 2)
   )
-
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (comment                                                    ;;Creates the todo-table, (already created)
@@ -133,7 +148,6 @@
   create table ROLE (
   ROLE varchar (50),
   )"])
-
 
   ;;Links together USER- and ROLE-table
   (jdbc/execute! ds ["
@@ -176,7 +190,7 @@
 
   (jdbc/execute! ds ["SELECT * FROM USER_ROLE"])
 
-  (user-dis-act "anders")
+  (user-dis-act "filippa")
 
   (all-roles)
 

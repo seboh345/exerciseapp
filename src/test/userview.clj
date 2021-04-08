@@ -12,8 +12,6 @@
             [test.user :as user]))
 
 
-
-
 (defn list-users
   [users]
   [:ul
@@ -38,25 +36,49 @@
 
 (defn available-roles
   [userpk]
-  (list-user-roles (cljset/difference (user/all-roles) (user/roles (edn/read-string userpk)))
+  (list-user-roles (cljset/difference (user/all-roles)
+                                      (user/roles (edn/read-string userpk)))
                    userpk))
 
 (defn user-handler
   [req]
-  ;(pprint (get-in req [:params :id]))
-  (def tempuser
+  (def userid
     (get-in req [:params :id]))
+  (def userdata
+    (user/user userid))
   (html
     [:div
-     [:h1 "Current user " (user/username tempuser)]
+     [:h1 "Current user " (:USER/USERNAME userdata)]
+     [:br]
      "Aktiva roller på nuvarande användare: "
-     (active-roles tempuser)
+     (active-roles userid)
      [:br]
      "Samtliga tillgängliga roller (som nuvarande använder totalt och helt fullständigt saknar kompetens för): "
      [:br]
-     (available-roles tempuser)
-     ;;"Samtliga roller på Tillfälligtnamn AB: "
-     ;;(list-user-roles (user/all-roles)) [:br]
+     (available-roles userid)
+     [:br]
+     "E-post till nuvarande användare: "
+     (:USER/EMAIL userdata)
+     [:br]
+     [:form
+      {:method  "post"
+       :action  (str "/usermanagment/add-mail/" userid)
+       :enctype "multipart/form-data"}                      ;;Change encoding to multipart/form-data
+      [:label {:for "#input4"} "Type your e-mail:"]
+      [:input
+       {:type "text"
+        :id   "input4"
+        :name "input4"}]
+      [:input
+       {:type  "submit"
+        :value "Save"}]]
+     "User is active? (true/false): "
+     (if (:USER/ACTIVE userdata)
+       "User is Active"
+       "User is Inactive")
+     [:br]
+     "Swap user status"
+     [:a {:href (str "/usermanagement/swap-status/" userid)} " Here"]
      ]))
 
 (defn sessionhtml [sessions req]
@@ -83,19 +105,19 @@
   (html
     [:h2 "Add a user below!"]
     [:form
-     {:method "post"
-      :action "/adduseroffice"
+     {:method  "post"
+      :action  "/adduseroffice"
       :enctype "multipart/form-data"}
      [:label {:for "#input3"} "Type the new user: "]
      [:input
       {:type "text"
-       :id "input3"
+       :id   "input3"
        :name "input3"}]
      [:input
-      {:type "submit"
+      {:type  "submit"
        :value "Save"}]]
     "All users:" [:br]
-     (list-users (jdbc/execute! user/ds ["SELECT * FROM USER ORDER BY USERNAME"])) [:br]
+    (list-users (jdbc/execute! user/ds ["SELECT * FROM USER ORDER BY USERNAME"])) [:br]
     ))
 
 (comment

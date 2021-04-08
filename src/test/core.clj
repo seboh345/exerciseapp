@@ -54,8 +54,6 @@
   (def temprole
     (get-in req [:params :role]))
 
-  ;(println (get-in req [:params :id]))
-  ;(println (get-in req [:params :role]))
   (if (user/has-role? tempusername temprole)
     (user/delete-role tempusername temprole)
     (user/add-role tempusername temprole))
@@ -75,6 +73,35 @@
   (main-handler req)
   )
 
+(defn email-handler
+  [req]
+  {:status  200
+   :headers {"Content-Type" "text/json"}                    ;(1)
+   :body "" }
+  ;(pprint req)
+  (user/add-email (get-in req [:params :id])
+                  (get-in req [:params "input4"]))
+  (userview/user-handler req))
+
+(defn status-handler
+  [req]
+  {:status  200
+   :headers {"Content-Type" "text/json"}                    ;(1)
+   :body "" }
+
+  (user/user-dis-act (edn/read-string (get-in req [:params :id])))
+  (userview/user-handler req)
+  )
+
+
+(comment
+  (edn/read-string "10")
+  (edn/read-string "\"heq\"")
+  (edn/read-string ":hej")
+  (edn/read-string "kalle")
+  )
+
+
 (defroutes app-routes                                       ;(3)  ;;Here we define our routes
            (GET "/" [] main-handler)
            (GET "/remove/:id" [] delete-handler)            ;;GET när vi hämtar adress? isch? google
@@ -82,7 +109,9 @@
            (POST "/sessionoffice" [] session-handler)
            (GET "/usermanagement/:id" [] userview/user-handler)
            (GET "/usermanagement/remove-role/:id/:role" [] remove-role-handler)
-           (POST "/adduseroffice" [] add-user-handler)
+           (GET "/usermanagement/swap-status/:id" [] status-handler)
+           (POST "/usermanagment/add-mail/:id" [] email-handler)
+           (POST "/adduseroffice/" [] add-user-handler)
            (route/not-found "Something went wrong! Blame me!"))
 
 (def app
@@ -102,12 +131,3 @@
   (user/add-role "David" "Taxikung")
   )
 
-
-
-
-
-
-
-;;Kända buggar:
-;;Om man tar bort sista rollen av något -> försvinner från tillgängliga roller, dvs behöver en extern lista på alla roller man ska kunna ha
-;;Vid uppdatering av sidan skickas commando igen
