@@ -48,7 +48,8 @@
         (get (first (jdbc/execute! ds ["SELECT * FROM USER WHERE USERNAME = ?" (str/lower-case username)])) :USER/PK)]
     (jdbc/execute! ds ["
     insert into USER_ROLE(USER_PK, ROLE)
-    values(?,?)" currentpk (str/lower-case temprole)])))
+    values(?,?)" currentpk (str/lower-case temprole)]))
+  )
 
 (defn add-master-role
   [role]

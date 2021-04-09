@@ -66,7 +66,9 @@
 (defn add-user-handler [req]
   (def tempusername
     (get-in req [:params "input3"]))
+  (println "Inside userhandler")
   (user/add-user tempusername)
+  (println "after user")
   {:status  200
    :headers {"Content-Type" "text/json"}                    ;(1)
    :body "" }

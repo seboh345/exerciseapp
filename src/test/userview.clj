@@ -40,6 +40,32 @@
                                       (user/roles (edn/read-string userpk)))
                    userpk))
 
+(defn display-email
+  [userdata userid]
+  (html
+    "E-post till nuvarande användare: "
+    (:USER/EMAIL userdata)
+    [:br]
+    [:form
+     {:method  "post"
+      :action  (str "/usermanagment/add-mail/" userid)
+      :enctype "multipart/form-data"}                       ;;Change encoding to multipart/form-data
+     [:label {:for "#input4"} "Type your e-mail:"]
+     [:input
+      {:type "text"
+       :id   "input4"
+       :name "input4"}]
+     [:input
+      {:type  "submit"
+       :value "Save"}]]
+    "User is active? (true/false): "
+    (if (:USER/ACTIVE userdata)
+      "User is Active"
+      "User is Inactive")
+    [:br]
+    "Swap user status"
+    [:a {:href (str "/usermanagement/swap-status/" userid)} " Here"]))
+
 (defn user-handler
   [req]
   (def userid
@@ -57,28 +83,7 @@
      [:br]
      (available-roles userid)
      [:br]
-     "E-post till nuvarande användare: "
-     (:USER/EMAIL userdata)
-     [:br]
-     [:form
-      {:method  "post"
-       :action  (str "/usermanagment/add-mail/" userid)
-       :enctype "multipart/form-data"}                      ;;Change encoding to multipart/form-data
-      [:label {:for "#input4"} "Type your e-mail:"]
-      [:input
-       {:type "text"
-        :id   "input4"
-        :name "input4"}]
-      [:input
-       {:type  "submit"
-        :value "Save"}]]
-     "User is active? (true/false): "
-     (if (:USER/ACTIVE userdata)
-       "User is Active"
-       "User is Inactive")
-     [:br]
-     "Swap user status"
-     [:a {:href (str "/usermanagement/swap-status/" userid)} " Here"]
+     (display-email userdata userid)
      ]))
 
 (defn sessionhtml [sessions req]
