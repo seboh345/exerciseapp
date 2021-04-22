@@ -36,14 +36,14 @@
 (defn mail-handler [req]
   (testtodo/savetodoindb (get-in req [:params "input1"]))   ;;Here we get the input1 params in the returned map from and save a new entry
   {:status  200
-   :headers {"Content-Type" "text/json"}                    ;(1)
+   :headers {"Content-Type" "text/json"}
    :body    ""}
   (main-handler req))
 
 (defn delete-handler [req]
-  (testtodo/removetask (get-in req [:params :id]))          ;
+  (testtodo/removetask (get-in req [:params :id]))
   {:status  200
-   :headers {"Content-Type" "text/json"}                    ;(1)
+   :headers {"Content-Type" "text/json"}
    :body    ""}
   (main-handler req))
 
@@ -59,7 +59,7 @@
     (user/add-role tempusername temprole))
 
   {:status  200
-   :headers {"Content-Type" "text/json"}                    ;(1)
+   :headers {"Content-Type" "text/json"}
    :body    ""}
   (userview/user-handler req))
 
@@ -70,7 +70,7 @@
   (user/add-user tempusername)
   (println "after user")
   {:status  200
-   :headers {"Content-Type" "text/json"}                    ;(1)
+   :headers {"Content-Type" "text/json"}
    :body "" }
   (main-handler req)
   )
@@ -78,7 +78,7 @@
 (defn email-handler
   [req]
   {:status  200
-   :headers {"Content-Type" "text/json"}                    ;(1)
+   :headers {"Content-Type" "text/json"}
    :body "" }
   ;(pprint req)
   (user/add-email (get-in req [:params :id])
@@ -88,13 +88,22 @@
 (defn status-handler
   [req]
   {:status  200
-   :headers {"Content-Type" "text/json"}                    ;(1)
+   :headers {"Content-Type" "text/json"}
    :body "" }
 
   (user/user-dis-act (edn/read-string (get-in req [:params :id])))
   (userview/user-handler req)
   )
 
+(defn organisation-handler
+  [req]
+  {:status  200
+   :headers {"Content-Type" "text/json"}
+   :body "" }
+  (pprint req)
+  #_ (user/add-organisation-to-user (get-in req [:params :id])
+                         (get-in req [:params "input5"]))
+  (userview/user-handler req))
 
 (comment
   (edn/read-string "10")
@@ -112,7 +121,8 @@
            (GET "/usermanagement/:id" [] userview/user-handler)
            (GET "/usermanagement/remove-role/:id/:role" [] remove-role-handler)
            (GET "/usermanagement/swap-status/:id" [] status-handler)
-           (POST "/usermanagment/add-mail/:id" [] email-handler)
+           (POST "/usermanagement/add-mail/:id" [] email-handler)
+           (POST "/usermanagement/add-organisation-to-user/:id" [] organisation-handler)
            (POST "/adduseroffice/" [] add-user-handler)
            (route/not-found "Something went wrong! Blame me!"))
 

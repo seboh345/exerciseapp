@@ -11,7 +11,6 @@
             [clojure.set :as cljset]
             [test.user :as user]))
 
-
 (defn list-users
   [users]
   [:ul
@@ -20,14 +19,9 @@
          ]
      [:li [:a {:href (str "/usermanagement/" (:USER/PK u))} (:USER/USERNAME u)]])])
 
-(defn list-user-roles
-  [roles userpk]
-  [:ul
-   (map (fn [r]
-          [:li [:a {:href (str "/usermanagement/remove-role/" userpk "/" r)} r]])
-        roles)])
-;;=> [:ul [:li "Brandman"] [:li "Bagare"]]
-;;Ta bort user, och länka tillbaka där den var
+
+
+
 
 (defn active-roles
   [userpk]
@@ -48,7 +42,7 @@
     [:br]
     [:form
      {:method  "post"
-      :action  (str "/usermanagment/add-mail/" userid)
+      :action  (str "/usermanagement/add-mail/" userid)
       :enctype "multipart/form-data"}                       ;;Change encoding to multipart/form-data
      [:label {:for "#input4"} "Type your e-mail:"]
      [:input
@@ -57,14 +51,56 @@
        :name "input4"}]
      [:input
       {:type  "submit"
-       :value "Save"}]]
+       :value "Save"}]]))
+
+(defn display-status
+  [userdata userid]
+  (html
     "User is active? (true/false): "
     (if (:USER/ACTIVE userdata)
       "User is Active"
       "User is Inactive")
     [:br]
     "Swap user status"
-    [:a {:href (str "/usermanagement/swap-status/" userid)} " Here"]))
+    [:a {:href (str "/usermanagement/swap-status/" userid)} " Here"]
+    [:br]))
+
+
+(defn organisation-html
+  [userdata userid]
+  (html
+    [:h2 "Add an organisation to your user below!"]
+    [:form
+     {:method  "post"
+      :action  (str "/usermanagement/add-organisation/" userid)
+      :enctype "multipart/form-data"}
+     [:label {:for "#input5"} "Type the new organisation (integer): "]
+     [:input
+      {:type "text"
+       :id   "input5"
+       :name "input5"}]
+     [:input
+      {:type  "submit"
+       :value "Save"}]]
+
+  ;;Organisationerna får bara vara INTegers ( testa integer?)
+    ))
+
+(defn list-user-roles
+  [roles userpk]
+  (pprint roles)
+  (pprint userpk)
+  ;;behöver få in user-id
+  [:ul
+   (map (fn [r]
+          [:li [:a {:href (str "/usermanagement/remove-role/" userpk "/" r)} r]
+           ;(organisation-html userid)
+           ])
+        roles)])
+
+
+
+
 
 (defn user-handler
   [req]
@@ -84,6 +120,8 @@
      (available-roles userid)
      [:br]
      (display-email userdata userid)
+     (display-status userdata userid)
+     (organisation-html userdata userid)
      ]))
 
 (defn sessionhtml [sessions req]

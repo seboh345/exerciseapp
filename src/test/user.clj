@@ -29,6 +29,8 @@
       true
       false)))
 
+
+
 (defn add-user
   "takes req and adds user in the USER table"
   [tempname]
@@ -73,6 +75,19 @@
 
 ;(add-email 1 "bertil@stonks.com")
 
+(defn add-organisation-to-user
+  [userpk orgnumber currentrole]
+  (jdbc/execute! ds ["
+    UPDATE USER_ROLE SET ORGANISATION_PK = ?
+    WHERE USER_PK = ?
+      AND ROLE    = ?" orgnumber, userpk ,currentrole]))
+
+;;role måste vi ha med vid anropet,
+
+
+(comment
+(add-organisation-to-user 2 2 "administratör")
+  )
 (defn roles
   [username-or-id]
   (let [currentpk (if (string? username-or-id)

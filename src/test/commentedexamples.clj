@@ -13,7 +13,7 @@
   (map :USER_ROLE/ROLE [#:USER_ROLE{:USER_PK 2, :ROLE "Brandman"} #:USER_ROLE{:USER_PK 2, :ROLE "Bagare"}])
 
   (jdbc/execute! ds ["SELECT * FROM USER_ROLE WHERE USER_PK = ?" 2])
-  (list-user-roles (roles username))                        ;;genererar hiccup skit i db :D
+  (list-user-roles (roles username))
   (roles "Anders")                                          ;;snackar med db
 
 
