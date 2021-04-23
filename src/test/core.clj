@@ -99,10 +99,11 @@
   [req]
   {:status  200
    :headers {"Content-Type" "text/json"}
-   :body "" }
+   :body    ""}
   (pprint req)
   #_ (user/add-organisation-to-user (get-in req [:params :id])
-                         (get-in req [:params "input5"]))
+                                 (get-in req [:params "input5"])
+                                 (get-in req [:params :role]))
   (userview/user-handler req))
 
 (comment
@@ -122,7 +123,7 @@
            (GET "/usermanagement/remove-role/:id/:role" [] remove-role-handler)
            (GET "/usermanagement/swap-status/:id" [] status-handler)
            (POST "/usermanagement/add-mail/:id" [] email-handler)
-           (POST "/usermanagement/add-organisation-to-user/:id" [] organisation-handler)
+           (POST "/usermanagement/add-organisation-to-role/:id/:role" [] organisation-handler)
            (POST "/adduseroffice/" [] add-user-handler)
            (route/not-found "Something went wrong! Blame me!"))
 

@@ -75,7 +75,7 @@
 
 ;(add-email 1 "bertil@stonks.com")
 
-(defn add-organisation-to-user
+(defn add-organisation-to-user_role
   [userpk orgnumber currentrole]
   (jdbc/execute! ds ["
     UPDATE USER_ROLE SET ORGANISATION_PK = ?
@@ -86,7 +86,17 @@
 
 
 (comment
-(add-organisation-to-user 2 2 "administratör")
+(add-organisation-to-user_role 4 3 "avdelningschef")
+
+(add-organisation-to-user_role 1 3 "avdelningschef")
+
+(jdbc/execute! ds ["SELECT * FROM USER"])
+(jdbc/execute! ds ["SELECT * FROM USER_ROLE"])
+(jdbc/execute! ds ["SELECT * FROM ROLE"])
+(jdbc/execute! ds ["SELECT * FROM ORGANISATION"])
+
+;; Verkar som vi inte sätter org_pk i user_role?
+;;
   )
 (defn roles
   [username-or-id]

@@ -19,9 +19,40 @@
          ]
      [:li [:a {:href (str "/usermanagement/" (:USER/PK u))} (:USER/USERNAME u)]])])
 
+(defn test-html
+  [userid role]
+  (html
+    [:form
+     {:method  "post"
+      :action  (str "/usermanagement/add-organisation-to-role/" userid "/" role)
+      :enctype "multipart/form-data"}
+     [:label {:for "#input5"} "Add organisation to role (integer): "]
+     [:input
+      {:type "text"
+       :id   "input5"
+       :name "input5"}]
+     [:input
+      {:type  "submit"
+       :value "Save"}]]
+    ;;input5 motsvarar organisation
+    ))
 
+(defn list-user-roles
+  [roles userpk]
+  [:ul
+   (map (fn [r]
+          [:li [:a {:href (str "/usermanagement/remove-role/" userpk "/" r)} r]
+           ;(test-html userid r)
+           ;(organisation-html roleid)
+           ])
+        roles)])
 
+;;"Bara lös skiten med fulhack, generalisera sen?"
+;;Ska ha in nuvarande roll och userid
 
+;(pprint roles)
+; (pprint userpk)
+;;Vårt form hänger direkt på en roll. Så vi borde ha role-id. Då behöver vi skicka in vår org-pk till route
 
 (defn active-roles
   [userpk]
@@ -65,14 +96,13 @@
     [:a {:href (str "/usermanagement/swap-status/" userid)} " Here"]
     [:br]))
 
-
 (defn organisation-html
   [userdata userid]
   (html
     [:h2 "Add an organisation to your user below!"]
     [:form
      {:method  "post"
-      :action  (str "/usermanagement/add-organisation/" userid)
+      :action  (str "/usermanagement/add-organisation-to-role/" userid)
       :enctype "multipart/form-data"}
      [:label {:for "#input5"} "Type the new organisation (integer): "]
      [:input
@@ -85,21 +115,6 @@
 
   ;;Organisationerna får bara vara INTegers ( testa integer?)
     ))
-
-(defn list-user-roles
-  [roles userpk]
-  (pprint roles)
-  (pprint userpk)
-  ;;behöver få in user-id
-  [:ul
-   (map (fn [r]
-          [:li [:a {:href (str "/usermanagement/remove-role/" userpk "/" r)} r]
-           ;(organisation-html userid)
-           ])
-        roles)])
-
-
-
 
 
 (defn user-handler
@@ -164,9 +179,12 @@
     ))
 
 (comment
+
+
   (jdbc/execute! user/ds ["SELECT * FROM USER"])
   (jdbc/execute! user/ds ["SELECT * FROM USER_ROLE"])
   (jdbc/execute! user/ds ["SELECT * FROM ROLE"])
+  (jdbc/execute! user/ds ["SELECT * FROM ORGANISATION"])
   )
 
 
