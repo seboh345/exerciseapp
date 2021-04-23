@@ -42,8 +42,7 @@
   [:ul
    (map (fn [r]
           [:li [:a {:href (str "/usermanagement/remove-role/" userpk "/" r)} r]
-           ;(test-html userid r)
-           ;(organisation-html roleid)
+           (test-html userid r)
            ])
         roles)])
 

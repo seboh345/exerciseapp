@@ -101,7 +101,7 @@
    :headers {"Content-Type" "text/json"}
    :body    ""}
   (pprint req)
-  #_ (user/add-organisation-to-user (get-in req [:params :id])
+  (user/add-organisation-to-user_role (get-in req [:params :id])
                                  (get-in req [:params "input5"])
                                  (get-in req [:params :role]))
   (userview/user-handler req))
